@@ -1,0 +1,39 @@
+BROKER SCHEMA gen
+
+
+CREATE COMPUTE MODULE Authentication_SetResponse
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		IF Environment.Variables.Username=InputRoot.JSON.Data.Credentials.username THEN
+		  IF Environment.Variables.Password=InputRoot.JSON.Data.Credentials.password THEN
+		    SET OutputRoot.XMLNSC.Response.ResponseCode='00';
+		    SET OutputRoot.XMLNSC.Response.ResponseDesc='Username and password is correct';
+		    PROPAGATE TO TERMINAL 0;
+		  ELSE
+		    SET OutputRoot.XMLNSC.Response.ResponseCode='98';
+		    SET OutputRoot.XMLNSC.Response.ResponseDesc='Password is incorrect';
+		    PROPAGATE TO TERMINAL 1;
+		  END IF; 
+		ELSE
+		  SET OutputRoot.XMLNSC.Response.ResponseCode='97';
+		  SET OutputRoot.XMLNSC.Response.ResponseDesc='Username is incorrect';
+		  PROPAGATE TO TERMINAL 2;
+		END IF;  		
+		
+		RETURN FALSE;
+	END;
+
+	CREATE PROCEDURE CopyMessageHeaders() BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER;
+		SET J = CARDINALITY(InputRoot.*[]);
+		WHILE I < J DO
+			SET OutputRoot.*[I] = InputRoot.*[I];
+			SET I = I + 1;
+		END WHILE;
+	END;
+
+	CREATE PROCEDURE CopyEntireMessage() BEGIN
+		SET OutputRoot = InputRoot;
+	END;
+END MODULE;
